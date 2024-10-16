@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <script src="https://www.google.com/recaptcha/api.js?render=6LcoF2MqAAAAAIGDjppAOtd6SQWeCKoYmEy5EdDy" async defer></script>
     <script src="https://code.jquery.com/jquery-3.7.1.js"
         integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
 </head>
@@ -24,41 +24,44 @@
             <label for="exampleInputPassword1" class="form-label">Password</label>
             <input type="password" class="form-control" id="exampleInputPassword1">
         </div>
-        <div class="g-recaptcha mb-3" data-sitekey=""></div>
         <button onclick="LoginButton()" class="btn btn-primary">Login</button>
     </div>
 </body>
 
 <script>
     function LoginButton() {
-        const reCaptchaResponse = grecaptcha.getResponse();
-        if (reCaptchaResponse) {
-            $.ajax({
-                url: "http://localhost:1905/api/User/Login",
-                type: "POST",
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    captchaResponse: reCaptchaResponse,
-                    userName: document.getElementById("exampleInputEmail1").value,
-                    password: document.getElementById("exampleInputPassword1").value
-                }),
-                success: function (data) {
-                    if (data) {
-                        //API returned true
-                        alert("Captcha Verified");
-                    } else {
-                        //API returned false
-                        alert("Please verify captcha again");
-                    }
-                },
-                error: function (error) {
-                    alert("Please try again");
+        grecaptcha.ready(function() {
+            // reCAPTCHA v3'te aksiyonu belirliyoruz (örneğin 'login' olarak)
+            grecaptcha.execute('6LcoF2MqAAAAAIGDjppAOtd6SQWeCKoYmEy5EdDy', { action: 'login' }).then(function(token) {
+                if (token) {
+                    // Ajax ile form verisini ve token'ı gönderiyoruz
+                    $.ajax({
+                        url: "http://localhost:1905/api/User/Login",
+                        type: "POST",
+                        contentType: 'application/json',
+                        data: JSON.stringify({
+                            captchaResponse: token, // reCAPTCHA v3 token'ı
+                            userName: document.getElementById("exampleInputEmail1").value,
+                            password: document.getElementById("exampleInputPassword1").value
+                        }),
+                        success: function(data) {
+                            if (data) {
+                                // API doğrulama başarılıysa
+                                alert("Captcha Verified");
+                            } else {
+                                // API doğrulama başarısızsa
+                                alert("Please verify captcha again");
+                            }
+                        },
+                        error: function(error) {
+                            alert("Please try again");
+                        }
+                    });
+                } else {
+                    alert("Something went wrong with reCaptcha. Please try again!");
                 }
             });
-        }
-        else {
-            alert("Something went wrong with reCaptcha. Please try again!");
-        }
+        });
     }
 </script>
 
